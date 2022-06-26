@@ -1,28 +1,23 @@
-from flask import Flask, jsonify, request
+from flask import Flask, request, render_template
 
 app = Flask(__name__)
-# Чтобы заработала кириллица
-app.config['JSON_AS_ASCII'] = False
 
-books = [
+@app.route('/')
+def page_form():
+    """ Эта вьюшка показывает форму, которая отправляет файлы"""
+    form_content = """
+    <form action="/upload" method="post" enctype="multipart/form-data">
+        <input type="file" name="picture">
+        <input type="submit" value="Отправить">
+    </form>
+    """
+    return form_content
 
-    {"title": "Введение в Python", "price": 1400},
-    {"title": "Python для новичков", "price": 2400},
-    {"title": "Python  в схемах и мемах", "price": 1800}
-
-]
-
-@app.route("/")
-def get_books_json():
-
-    s = request.args.get("s")
-
-    books_found = []
-
-    for book in books:
-        if s in book["title"].lower():
-            books_found.append(book)
-
-    return jsonify(books_found)
+@app.route('/upload', methods=['POST'])
+def page_upload():
+    """ Эта вьюшка обрабатывает форму, вытаскивает из запроса файл и показывает его имя"""
+    # Получаем объект картинки из формы
+    picture = request.files("picture")
+    return f"Загружен файл {picture.filename}"
 
 app.run()
