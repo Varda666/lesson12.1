@@ -13,25 +13,18 @@ app = Flask(__name__)
 app.config['JSON_AS_ASCII'] = False
 
 app.register_blueprint(main_blueprint)
-app.register_blueprint(loader_blueprint, url_prefix='/post')
+app.register_blueprint(loader_blueprint)
 
 @app.route("/")
 def page_index():
-   return main_blueprint
+   return render_template('index.html')
 
-@app.route("/list/search/?s=поиск")
-def page_tag():
-    s = request.args.get("s").lower()
-    data = functions.search_posts(s)
-    return render_template("post_list.html", s=s, data=data)
-
-@app.route("/post_form/", methods=["POST"])
+@app.route("/uploads/post_form", methods=["POST"])
 def page_post_form():
     return render_template("post_form.html")
 
-
-@app.route("/post_uploaded/", methods=["POST"])
-def page_post_form():
+@app.route("/uploads/post_uploaded", methods=["POST"])
+def page_post_form_uploaded():
     picture = request.files.get('picture')
     if picture:
         ALLOWED_EXT = {'png', 'jpg'}
@@ -59,10 +52,11 @@ def page_post_form():
         logging.error("ошибка при загрузке файла")
         return f"Ошибка при загрузке файла"
 
-
-@app.route("/uploads/<path:path>")
-def static_dir(path):
-    return send_from_directory("uploads", path)
+app.route("/search/?s=поиск")
+def page_tag():
+    s = request.args.get("s").lower()
+    data = functions.search_posts(s)
+    return render_template("post_list.html", s=s, data=data)
 
 
 app.run()
