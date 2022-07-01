@@ -6,7 +6,6 @@ import logging
 import json
 # from functions import ...
 
-POST_PATH = "posts.json"
 UPLOAD_FOLDER = "uploads/images"
 
 app = Flask(__name__)
@@ -21,9 +20,10 @@ def page_index():
 
 @app.route("/uploads/post_form", methods=["POST"])
 def page_post_form():
-    return render_template("post_form.html")
+    data = functions.add_post()
+    return render_template("post_form.html", data=data)
 
-@app.route("/uploads/post_uploaded", methods=["POST"])
+@app.route("/uploads/post_uploaded", methods=["GET"])
 def page_post_form_uploaded():
     picture = request.files.get('picture')
     if picture:
@@ -41,8 +41,8 @@ def page_post_form_uploaded():
             elif picture == "None":
                 raise NotInputError("ошибка загрузки")
             else:
-                functions.upload_to_json_file()
-                return render_template("post_uploaded.html", text=text, picture=picture)
+                data = functions.add_post()
+                return render_template("post_uploaded.html", data=data)
         else:
             logging.basicConfig(level=logging.INFO)
             logging.info("Загруженный файл - не картинка")
@@ -53,10 +53,13 @@ def page_post_form_uploaded():
         return f"Ошибка при загрузке файла"
 
 app.route("/search/?s=поиск")
-def page_tag():
+def page_tag(s):
     s = request.args.get("s").lower()
-    data = functions.search_posts(s)
-    return render_template("post_list.html", s=s, data=data)
+    if s is None or s == '':
+        return "Пустой запрос"
+    else:
+        data = functions.search_posts(s)
+        return render_template("post_list.html", s=s, data=data)
 
 
 app.run()
