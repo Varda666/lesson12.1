@@ -18,30 +18,30 @@ app.register_blueprint(loader_blueprint)
 def page_index():
    return render_template('index.html')
 
-@app.route("/uploads/post_form", methods=["POST"])
+@app.route("/uploads/post_form", methods=["GET"])
 def page_post_form():
-    data = functions.add_post()
-    return render_template("post_form.html", data=data)
+   # data = functions.add_post()
+    return render_template("post_form.html")
 
-@app.route("/uploads/post_uploaded", methods=["GET"])
+@app.route("/uploads/post_uploaded", methods=["POST"])
 def page_post_form_uploaded():
     picture = request.files.get('picture')
     if picture:
-        ALLOWED_EXT = {'png', 'jpg'}
+        ALLOWED_EXT = {'png', 'jpg','jpeg'}
         filename = picture.filename
         extension = filename.split(".")[-1]
         if extension in ALLOWED_EXT:
-            picture.save(f"./{picture.filename}")
+            picture.save(f"./static/uploads/images/{filename}")
             text = request.values['content']
-            class NotInputError(Exception):
-                def __init__(self, message=None):
-                    super().__init__(message)
+            # class NotInputError(Exception):
+            #     def __init__(self, message=None):
+            #         super().__init__(message)
             if text == "None":
                 raise NotInputError("ошибка загрузки")
             elif picture == "None":
                 raise NotInputError("ошибка загрузки")
             else:
-                data = functions.add_post()
+                data = functions.add_post(text,filename)
                 return render_template("post_uploaded.html", data=data)
         else:
             logging.basicConfig(level=logging.INFO)
@@ -52,14 +52,16 @@ def page_post_form_uploaded():
         logging.error("ошибка при загрузке файла")
         return f"Ошибка при загрузке файла"
 
-app.route("/search/?s=поиск")
-def page_tag(s):
+@app.route("/search/")
+def page_tag():
     s = request.args.get("s").lower()
     if s is None or s == '':
         return "Пустой запрос"
     else:
         data = functions.search_posts(s)
-        return render_template("post_list.html", s=s, data=data)
+        return render_template("post_list.html", s=s, posts=data)
+
+
 
 
 app.run()
